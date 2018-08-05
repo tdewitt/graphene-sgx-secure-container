@@ -77,8 +77,13 @@ popd
 if [[ -e /opt/intel/sgxsdk && -e /opt/intel/sgxpsw ]]; then
   echo '[INFO] SDK and PSW already installed.  nothing to do'
 else
-  cp Iolite/sgx_sdk_psw.patch linux-sgx
+  if [[ ! -e linux-sgx ]]; then
+    git clone --recursive https://github.com/intel/linux-sgx.git
+  fi
   pushd linux-sgx
+  sudo git reset --hard
+  sudo chown -R ${USER}: .
+  cp ../Iolite/sgx_sdk_psw.patch linux-sgx
   ./download_prebuilt.sh
   git apply sgx_sdk_psw.patch --stat
   make -j5 DEBUG=1
@@ -101,7 +106,7 @@ else
     sudo ./linux/installer/bin/sgx_linux_x64_psw_1.9.100.39124.bin
   fi
 
-  chown ${USER}: /opt/intel -R
+  sudo chown ${USER}: /opt/intel -R
   popd
 fi
 
