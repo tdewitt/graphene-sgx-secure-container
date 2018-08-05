@@ -151,6 +151,11 @@ sudo make -j5 SGX=1 SGX_SIGNER_KEY=/opt/intel/sgxkey/enclave-key.pem DEBUG=1
 sudo update-alternatives --auto gcc
 popd
 
+# signer key
+pushd Pal/src/host/Linux-SGX/signer
+cp /opt/intel/sgxkey/enclave-key .
+popd
+
 # finalize
 popd
 
