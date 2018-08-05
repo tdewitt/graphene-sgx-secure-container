@@ -19,6 +19,8 @@ sudo apt-get install -y \
     ocaml \
     protobuf-compiler \
     python \
+    python-crypto \
+    python-protobuf \
     wget
 
 sudo usermod -a -G docker ${USER}
