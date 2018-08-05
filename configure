@@ -151,4 +151,4 @@ popd
 # finalize
 popd
 
-echo '[INFO] build complete.  read the docs'# finalize
+echo '[INFO] build complete.  read the docs to use'
