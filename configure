@@ -21,6 +21,11 @@ sudo apt-get install -y \
     python \
     wget
 
+sudo usermod -a -G docker ${USER}
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 100 --slave /usr/bin/g++ g++ /usr/bin/g++-5
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 99 --slave /usr/bin/g++ g++ /usr/bin/g++-4.8
+
+
 # Clone and build kernel driver
 if [[ ! -e linux-sgx-driver ]]; then
   git clone -b sgx_driver_1.9 https://github.com/intel/linux-sgx-driver.git
@@ -133,11 +138,9 @@ popd
 
 # compile LibOS
 pushd LibOS
-sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 101 --slave /usr/bin/g++ g++ /usr/bin/g++-4.8
+sudo update-alternatives --set gcc /usr/bin/gcc-4.8
 sudo make -j5 SGX=1 SGX_SIGNER_KEY=/opt/intel/sgxkey/enclave-key.pem DEBUG=1
-sudo update-alternatives --remove gcc /usr/bin/gcc-4.8
-sudo ln -sf /usr/bin/gcc-5 /usr/bin/gcc
-sudo ln -sf /usr/bin/g++-5 /usr/bin/g++
+sudo update-alternatives --auto gcc
 popd
 
 # finalize
