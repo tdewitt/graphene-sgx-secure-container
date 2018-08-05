@@ -83,7 +83,7 @@ else
   pushd linux-sgx
   sudo git reset --hard
   sudo chown -R ${USER}: .
-  cp ../Iolite/sgx_sdk_psw.patch linux-sgx
+  cp ../Iolite/sgx_sdk_psw.patch .
   ./download_prebuilt.sh
   git apply sgx_sdk_psw.patch --stat
   make -j5 DEBUG=1
