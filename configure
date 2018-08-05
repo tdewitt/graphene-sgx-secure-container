@@ -153,7 +153,7 @@ popd
 
 # signer key
 pushd Pal/src/host/Linux-SGX/signer
-cp /opt/intel/sgxkey/enclave-key .
+cp /opt/intel/sgxkey/enclave-key.pem .
 popd
 
 # finalize
