@@ -35,7 +35,7 @@ if lsmod | grep sgx; then
   echo '[INFO] sgx driver already installed.  nothing to do'
 else
   pushd linux-sgx-driver
-  sudo git reset --hard
+  sudo git reset --hard sgx_driver_1.9
   sudo chown -R ${USER}: .
   make -j5 DEBUG=1
   SIGNING_KEY_PATH="/usr/src/linux-headers-$(uname -r)/certs"
@@ -78,10 +78,10 @@ if [[ -e /opt/intel/sgxsdk && -e /opt/intel/sgxpsw ]]; then
   echo '[INFO] SDK and PSW already installed.  nothing to do'
 else
   if [[ ! -e linux-sgx ]]; then
-    git clone --recursive https://github.com/intel/linux-sgx.git
+    git clone -b sgx_1.9 https://github.com/intel/linux-sgx.git
   fi
   pushd linux-sgx
-  sudo git reset --hard
+  sudo git reset --hard sgx_1.9
   sudo chown -R ${USER}: .
   cp ../Iolite/sgx_sdk_psw.patch .
   ./download_prebuilt.sh
@@ -92,6 +92,7 @@ else
   if [[ -e /opt/intel/sgxsdk ]]; then
     echo '[INFO] /opt/intel/sgxsdk already exists.  remove to rebuild sdk package psw package'
   else
+    echo '[INFO] BULLSHIT'
     make -j5 sdk_install_pkg DEBUG=1
     sudo ./linux/installer/bin/sgx_linux_x64_sdk_1.9.100.39124.bin --prefix /opt/intel
     sudo sh -c "echo 'export SGX_ENCLAVE_KEY=/opt/intel/sgxkey/enclave-key.pem' >> /opt/intel/sgxsdk/environment"
