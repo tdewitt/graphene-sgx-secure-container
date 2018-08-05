@@ -1,19 +1,81 @@
 #!/bin/bash
 
+# Graphene build based on this guid:
+#   https://github.com/sgx-naors/Iolite
+apt-get install make build-essential ocaml automake autoconf libtool wget python libssl-dev libcurl4-openssl-dev protobuf-compiler libprotobuf-dev gcc-4.8 g++-4.8 docker.io
+
+# Clone and build kernel driver
+git clone -b sgx_driver_1.9 https://github.com/intel/linux-sgx-driver.git
+pushd linux-sgx-driver
+#mkdir -p "/lib/modules/"`uname -r`"/kernel/drivers/intel/sgx"
+#sudo cp isgx.ko "/lib/modules/"`uname -r`"/kernel/drivers/intel/sgx"
+make DEBUG=1
+openssl req -new -x509 -newkey rsa:4096 -keyout /usr/src/linux-headers-$(uname -r)/certs/signing_key.pem -nodes -days 36500 -subj "/CN=VirtruSGXTest/" -out /usr/src/linux-headers-$(uname -r)/certs/signing_key.x509
+make install
+ln -s /lib/modules/$(uname -r)/kernel/drivers/intel/sgx/isgx.ko /lib/modules/$(uname -r)
+/sbin/depmod -a
+/sbin/modprobe isgx
+popd
+
+# Clone Iolite repo, install old iclsclient and generate key
+git clone --recursive https://github.com/tdewitt/Iolite.git
+pushd Iolite
+apt-get install ./iclsclient_1.45.449.12-2_amd64.deb
+mkdir -p /opt/intel/sgxkey
+sudo openssl genrsa -3 -out /opt/intel/sgxkey/enclave-key.pem 3072
+popd
+
+# Clone and build SDK and PSW
+git clone -b sgx_1.9 https://github.com/intel/linux-sgx.git
+cp Iolite/sgx_sdk_psw.patch linux-sgx
+pushd linux-sgx
+./download_prebuilt.sh
+git apply sgx_sdk_psw.patch --stat
+make DEBUG=1
+make sdk_install_pkg DEBUG=1
+./linux/installer/bin/sgx_linux_x64_sdk_1.9.100.39124.bin --prefix /opt/intel
+make psw_install_pkg DEBUG=1
+./linux/installer/bin/sgx_linux_x64_psw_1.9.100.39124.bin
+echo 'export SGX_ENCLAVE_KEY=/opt/intel/sgxkey/enclave-key.pem' >> /opt/intel/sgxsdk/environment
+echo 'source /opt/intel/sgxsdk/environment' >> ${USER}/.bashrc
+chown ${USER}: /opt/intel -R
+popd
+
 # Clone Graphene-SGX
 git clone --recursive https://github.com/oscarlab/graphene.git
+pushd graphene
+git submodule update --init
+
+# compile graphene-sgx driver
+pushd Pal/src/host/Linux-SGX/sgx-driver
+make DEBUG=1
+cp graphene-sgx.ko /lib/modules/$(uname -r)/kernel/drivers/intel/sgx/
+ln -s /lib/modules/$(uname -r)/kernel/drivers/intel/sgx/graphene-sgx.ko /lib/modules/$(uname -r)
+cat /etc/modules | grep -Fxq graphene-sgx || echo graphene-sgx >> /etc/modules
+/sbin/depmod -a
+/sbin/modprobe graphene-sgx
+popd
+
+# compile PAL
+pushd Pal/src
+make SGX=1 DEBUG=1
+popd
+
+# compile LibOS
+update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 100 --slave /usr/bin/g++ g++ /usr/bin/g++-4.8
+pushd LibOS
+make SGX=1 SGX_SIGNER_KEY=/opt/intel/sgxkey/enclave-key.pem DEBUG=1
+popd
+
+popd
 
 # Build Graphene-SGX
-cd graphene/Pal/src/host/Linux-SGX/signer
-openssl genrsa -3 -out enclave-key.pem 3072
+#cd graphene/Pal/src/host/Linux-SGX/signer
+#openssl genrsa -3 -out enclave-key.pem 3072
 
 # Build PAL
-cd ../../../
-make SGX=1
+#cd ../../../
+#make SGX=1
 
-cd ../../LibOS
-make  
-
-
-
-
+#cd ../../LibOS
+#make
