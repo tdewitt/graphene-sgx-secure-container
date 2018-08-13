@@ -30,7 +30,7 @@ sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 99 --slave 
 
 # Clone and build kernel driver
 if [[ ! -e linux-sgx-driver ]]; then
-  git clone -b sgx_driver_1.9 https://github.com/intel/linux-sgx-driver.git
+  git clone -b sgx_driver_1.9 https://github.com/tdewitt/linux-sgx-driver.git
 fi
 
 if lsmod | grep sgx; then
@@ -80,7 +80,7 @@ if [[ -e /opt/intel/sgxsdk && -e /opt/intel/sgxpsw ]]; then
   echo '[INFO] SDK and PSW already installed.  nothing to do'
 else
   if [[ ! -e linux-sgx ]]; then
-    git clone -b sgx_1.9 https://github.com/intel/linux-sgx.git
+    git clone -b sgx_1.9 https://github.com/tdewitt/linux-sgx.git
   fi
   pushd linux-sgx
   sudo git reset --hard sgx_1.9
